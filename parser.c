@@ -163,11 +163,19 @@ int tokenize(char *line, char *tokens[]) {
         }
 
         if (line[i] == '<' || line[i] == '>' || line[i] == '|') {
+
             tokens[ntokens++] = &line[i];
-            i++;
-            line[i - 1 + 1] = '\0';
+
+            if (line[i + 1] != '\0') {
+                line[i + 1] = '\0';
+                i += 2;
+            } else {
+                i++;
+            }
+
             continue;
         }
+
 
         tokens[ntokens++] = &line[i];
 
