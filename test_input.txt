@@ -42,6 +42,13 @@ echo hi >
 not_a_real_command
 echo still_running
 
-# 12. exit
+#12 unmatched wildcard
+echo nope*.xyz
+
+#13 exit inside pipeline (should still terminate shell)
+echo hi | exit
+echo SHOULD_NOT_PRINT
+
+# 14. exit
 exit
 echo SHOULD_NOT_RUN
