@@ -1,0 +1,295 @@
+# =========================================================
+# EXTENSIVE TEST SUITE FOR MYSH
+# =========================================================
+
+# ---------------------------------------------------------
+# 1. COMMENTS / EMPTY LINES / SIMPLE COMMANDS
+# ---------------------------------------------------------
+
+# comment-only line
+
+pwd
+
+echo hello
+echo hello_world # trailing comment should be ignored
+echo after_blank_line
+
+# another comment-only line
+
+which ls
+which echo
+which cat
+which pwd
+which cd
+which exit
+which definitely_not_real
+
+# ---------------------------------------------------------
+# 2. BASIC BUILTIN TESTS
+# ---------------------------------------------------------
+
+pwd
+cd .
+pwd
+
+cd ..
+pwd
+
+cd .
+pwd
+
+cd does_not_exist
+cd one two
+
+cd
+pwd
+
+# ---------------------------------------------------------
+# 3. BASIC EXTERNAL COMMANDS
+# ---------------------------------------------------------
+
+echo basic_echo_test
+/bin/echo absolute_echo_test
+/bin/pwd
+ls
+
+# ---------------------------------------------------------
+# 4. SET UP TEST DIRECTORY
+# ---------------------------------------------------------
+
+rm -rf mysh_testdir
+mkdir mysh_testdir
+cd mysh_testdir
+pwd
+
+mkdir subdir
+mkdir subdir2
+mkdir nested
+
+touch a.txt
+touch b.txt
+touch c.txt
+touch d.log
+touch foo1bar
+touch foo22bar
+touch foobar
+touch prefixsuffix
+touch prefix_middle_suffix
+touch x
+touch xy
+touch xyz
+touch .hidden
+touch .hidden.txt
+
+echo alpha > alpha.txt
+echo beta > beta.txt
+echo gamma > gamma.txt
+
+# ---------------------------------------------------------
+# 5. VERIFY SETUP
+# ---------------------------------------------------------
+
+ls
+cat alpha.txt
+cat beta.txt
+cat gamma.txt
+
+# ---------------------------------------------------------
+# 6. OUTPUT REDIRECTION
+# ---------------------------------------------------------
+
+echo redirected_output > out1.txt
+cat out1.txt
+
+echo overwrite_me > overwrite.txt
+cat overwrite.txt
+echo overwritten > overwrite.txt
+cat overwrite.txt
+
+pwd > out_pwd.txt
+cat out_pwd.txt
+
+which ls > out_which.txt
+cat out_which.txt
+
+# builtins redirected
+pwd > built_pwd.txt
+which echo > built_which.txt
+cat built_pwd.txt
+cat built_which.txt
+
+# output redirection failure
+pwd > /this/path/should/fail/file.txt
+
+# ---------------------------------------------------------
+# 7. INPUT REDIRECTION
+# ---------------------------------------------------------
+
+cat < alpha.txt
+cat < beta.txt
+wc < alpha.txt
+wc < beta.txt
+wc < gamma.txt
+
+# input redirection failure
+cat < does_not_exist.txt
+wc < does_not_exist.txt
+
+# ---------------------------------------------------------
+# 8. PIPELINES
+# ---------------------------------------------------------
+
+echo one two three | wc
+echo hello | cat
+cat alpha.txt | wc
+cat beta.txt | wc
+pwd | wc
+which ls | wc
+ls | wc
+
+# multi-stage pipelines
+echo many words here | wc | wc
+cat alpha.txt | wc | wc
+echo abc | cat | wc
+ls | wc | wc
+
+# builtins in pipelines
+pwd | cat
+which ls | cat
+which echo | wc
+
+# ---------------------------------------------------------
+# 9. WILDCARD EXPANSION
+# ---------------------------------------------------------
+
+echo *.txt
+echo *.log
+echo foo*bar
+echo prefix*suffix
+echo x*
+echo *bar
+echo *suffix
+echo zzz*
+
+# no-match wildcard should remain unchanged
+echo no_match_*
+echo nested/no_match_*
+
+# hidden file behavior:
+# patterns beginning with * should not match hidden names
+echo *txt
+echo *.txt
+
+# these may include hidden names depending on pattern
+echo .*
+echo .hidden*
+
+# wildcard with path prefix
+echo nested/*
+echo subdir/*
+echo subdir2/*
+
+# ---------------------------------------------------------
+# 10. PATHNAME EXECUTION
+# ---------------------------------------------------------
+
+/bin/echo pathname_exec_works
+/bin/ls
+/bin/pwd
+
+# ---------------------------------------------------------
+# 11. MORE CD MOVEMENT
+# ---------------------------------------------------------
+
+cd subdir
+pwd
+cd ..
+pwd
+
+cd subdir2
+pwd
+cd ..
+pwd
+
+cd nested
+pwd
+cd ..
+pwd
+
+# ---------------------------------------------------------
+# 12. COMMAND NOT FOUND
+# ---------------------------------------------------------
+
+not_a_real_command
+fakecmd
+another_fake_command
+
+echo shell_continues_after_bad_command
+
+# ---------------------------------------------------------
+# 13. SYNTAX ERROR TESTS
+# shell should recover and continue afterwards
+# ---------------------------------------------------------
+
+<
+>
+< <
+> >
+|
+| wc
+wc |
+echo hi >
+echo hi <
+echo hi | | wc
+echo hi < <
+echo hi > >
+pwd > > bad
+pwd < < bad
+which ls | | cat
+
+echo after_syntax_errors
+
+# ---------------------------------------------------------
+# 14. MORE REDIRECTION / PIPE CHECKS
+# ---------------------------------------------------------
+
+echo final_line > final.txt
+cat final.txt
+cat < final.txt
+cat final.txt | wc
+
+pwd > pipe_test.txt
+cat pipe_test.txt | wc
+
+which ls > pipe_test2.txt
+cat pipe_test2.txt | wc
+
+# ---------------------------------------------------------
+# 15. PIPELINE FAILURE EDGE CASES
+# success should depend on the last command
+# ---------------------------------------------------------
+
+echo abc | wc
+not_a_real_command | wc
+pwd | not_a_real_command
+which ls | not_a_real_command
+
+echo still_running_after_pipeline_failures
+
+# ---------------------------------------------------------
+# 16. SHELL CONTINUES AFTER MANY FAILURES
+# ---------------------------------------------------------
+
+cd no_such_directory_again
+which no_such_program_again
+cat < no_such_file_again.txt
+
+echo still_alive
+
+# ---------------------------------------------------------
+# 17. FINAL EXIT
+# ---------------------------------------------------------
+
+exit
+echo THIS_SHOULD_NOT_RUN
+pwd
