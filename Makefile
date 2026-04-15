@@ -5,14 +5,14 @@ CFLAGS = -std=c99 -g -Wall -fsanitize=address,undefined
 all: mysh
 
 # linker
-mysh: mysh.o input.o parse.o builtins.o execute.o
+mysh: mysh.o input.o parser.o built_in.o execute.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # The other files
 mysh.o: mysh.h
 input.o: mysh.h
-parse.o: mysh.h
-builtins.o: mysh.h
+parser.o: mysh.h
+built_in.o: mysh.h
 execute.o: mysh.h
 
 # generic to all make
