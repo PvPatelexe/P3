@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     int interactive_mode = 0;
     char line[MAX_LINE];
     char *tokens[MAX_TOKENS];
-    int exit_shell = 0;
+    int exit = 0;
 
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [file]\n", argv[0]);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
         printf("Welcome to my shell!\n");
     }
 
-    while (!exit_shell) {
+    while (!exit) {
         int r, ntokens, p;
         Job job;
         Status st;
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        st = execute_job(&job, interactive_mode, &exit_shell);
+        st = execute_job(&job, interactive_mode, &exit);
 
         if (interactive_mode) {
             print_status(st);

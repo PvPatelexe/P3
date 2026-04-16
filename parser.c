@@ -12,25 +12,25 @@ static int match_pattern(char *name, char *pattern) {
     }
 
     {
-        int prefix_len = (int)(star - pattern);
+        int pref_len = (int)(star - pattern);
         char *suffix = star + 1;
-        int suffix_len = strlen(suffix);
+        int suf_len = strlen(suffix);
         int name_len = strlen(name);
 
         if (pattern[0] == '*' && name[0] == '.') {
             return 0;
         }
 
-        if (name_len < prefix_len + suffix_len) {
+        if (name_len < pref_len + suf_len) {
             return 0;
         }
 
-        if (strncmp(name, pattern, prefix_len) != 0) {
+        if (strncmp(name, pattern, pref_len) != 0) {
             return 0;
         }
 
-        if (suffix_len > 0) {
-            if (strcmp(name + name_len - suffix_len, suffix) != 0) {
+        if (suf_len > 0) {
+            if (strcmp(name + name_len - suf_len, suffix) != 0) {
                 return 0;
             }
         }
