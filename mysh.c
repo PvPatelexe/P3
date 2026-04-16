@@ -11,12 +11,10 @@ int main(int argc, char *argv[]) {
     char line[MAX_LINE];
     char *tokens[MAX_TOKENS];
     int exit = 0;
-
     if (argc > 2) {
         fprintf(stderr, "Usage: %s [file]\n", argv[0]);
         return EXIT_SUCCESS;
     }
-
     if (argc == 2) {    //open file for batch mode
         fd = open(argv[1], O_RDONLY);
         if (fd < 0) {
@@ -28,11 +26,9 @@ int main(int argc, char *argv[]) {
     else {     //open interactive mode
         interactive_mode = isatty(STDIN_FILENO);
     }
-
     if (interactive_mode) {
         printf("Welcome to my shell!\n");
     }
-
     while (!exit) {
         int r, ntokens, p;
         Job job;
@@ -41,7 +37,6 @@ int main(int argc, char *argv[]) {
         if (interactive_mode) {
             print_prompt();
         }
-
         r = read_line_fd(fd, line);
         if (r < 0) {
             perror("read");
@@ -50,12 +45,10 @@ int main(int argc, char *argv[]) {
         if (r == 0) {
             break;
         }
-
         ntokens = tokenize(line, tokens);
         if (ntokens == 0) {
             continue;
         }
-
         init_job(&job);
 
         p = parse_job(tokens, ntokens, &job);
@@ -71,12 +64,10 @@ int main(int argc, char *argv[]) {
             free_job(&job);
             continue;
         }
-
         if (p == 0) {
             free_job(&job);      //fre allocated resources
             continue;
         }
-
         st = execute_job(&job, interactive_mode, &exit);
 
         if (interactive_mode) {
@@ -89,10 +80,8 @@ int main(int argc, char *argv[]) {
     if (interactive_mode) {
         printf("Exiting my shell.\n");
     }
-
     if (fd != STDIN_FILENO) {
         close(fd);
     }
-
     return EXIT_SUCCESS;
 }
