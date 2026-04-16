@@ -15,20 +15,16 @@ char *copy_string(const char *s) {
     strcpy(p, s);
     return p;
 }
-
 int has_slash(char *s) {
     return strchr(s, '/') != NULL;
 }
-
 int has_star(char *s) {
     return strchr(s, '*') != NULL;
 }
-
 void init_job(Job *job) {
     int i, j;
     job->ncmds = 0;
     job->should_exit = 0;
-
     for (i = 0; i < MAX_CMDS; i++) {
         job->cmds[i].argc = 0;
         job->cmds[i].infile = NULL;
@@ -56,33 +52,26 @@ void free_job(Job *job) {  //free all dynamically allocated memory associated wi
     job->ncmds = 0;
     job->should_exit = 0;
 }
-
 int is_builtin(char *name) {
     if (name == NULL) return 0;
-
     return strcmp(name, "cd") == 0 ||
            strcmp(name, "pwd") == 0 ||
            strcmp(name, "which") == 0 ||
            strcmp(name, "exit") == 0;
 }
-
-
 int read_line_fd(int fd, char *line) {
     static char buf[MAX_LINE];
     static int start = 0;
     static int end = 0;
     static int saved_fd = -1;
     int pos = 0;
-
     if (saved_fd != fd) {
         start = 0;
         end = 0;
         saved_fd = fd;
     }
-
     while (1) {
         int i;
-
         //scan buffer for new line to extract complete line
         for (i = start; i < end; i++) {
             if (buf[i] == '\n') {
@@ -97,7 +86,6 @@ int read_line_fd(int fd, char *line) {
                 return 1;
             }
         }
-
         if (start < end) {
             int len = end - start;
             if (pos + len >= MAX_LINE) {
@@ -107,7 +95,6 @@ int read_line_fd(int fd, char *line) {
             pos += len;
             start = end;
         }
-
         {
             int n = read(fd, buf, sizeof(buf));
             if (n < 0) return -1;
@@ -145,7 +132,6 @@ void print_prompt(void) {
             return;
         }
     }
-
     printf("%s$ ", cwd);
     fflush(stdout);
 }
