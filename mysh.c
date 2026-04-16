@@ -17,14 +17,15 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-    if (argc == 2) {
+    if (argc == 2) {    //open file for batch mode
         fd = open(argv[1], O_RDONLY);
         if (fd < 0) {
             perror(argv[1]);
             return EXIT_FAILURE;
         }
         interactive_mode = 0;
-    } else {
+    } 
+    else {     //open interactive mode
         interactive_mode = isatty(STDIN_FILENO);
     }
 
@@ -58,13 +59,13 @@ int main(int argc, char *argv[]) {
         init_job(&job);
 
         p = parse_job(tokens, ntokens, &job);
-        if (p < 0) {
+        if (p < 0) {   //construction of the failure status
             Status bad;
             bad.signaled = 0;
             bad.signal_num = 0;
             bad.exit_code = 1;
 
-            if (interactive_mode) {
+            if (interactive_mode) {  //print error status only in interactive
                 print_status(bad);
             }
             free_job(&job);
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (p == 0) {
-            free_job(&job);
+            free_job(&job);      //fre allocated resources
             continue;
         }
 

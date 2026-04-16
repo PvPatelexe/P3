@@ -74,6 +74,7 @@ static void add_expanded_arg(Command *cmd, char *token) {
     star = strchr(token, '*');
     last_slash = strrchr(token, '/');
 
+    //if * appears before last slash, treat token as literal path
     if (last_slash != NULL && star < last_slash) {
         if (cmd->argc < MAX_ARGS - 1) {
             cmd->argv[cmd->argc++] = copy_string(token);
@@ -86,12 +87,14 @@ static void add_expanded_arg(Command *cmd, char *token) {
         int len = (int)(last_slash - token);
         if (len == 0) {
             strcpy(dirpart, "/");
-        } else {
+        } 
+        else {
             strncpy(dirpart, token, len);
             dirpart[len] = '\0';
         }
         pattern = last_slash + 1;
-    } else {
+    } 
+    else {
         strcpy(dirpart, ".");
         pattern = token;
     }
@@ -106,18 +109,20 @@ static void add_expanded_arg(Command *cmd, char *token) {
     }
 
     while ((ent = readdir(dir)) != NULL) {
-        if (match_pattern(ent->d_name, pattern)) {
+        if (match_pattern(ent->d_name, pattern)) {   //check if file matches wildcard pattern
             char full[PATH_MAX];
 
             if (last_slash != NULL) {
                 if (strcmp(dirpart, "/") == 0) {
                     snprintf(full, sizeof(full), "/%s", ent->d_name);
-                } else {
+                } 
+                else {
                     snprintf(full, sizeof(full), "%s/%s", dirpart, ent->d_name);
                 }
-                matches[nmatches++] = copy_string(full);
-            } else {
-                matches[nmatches++] = copy_string(ent->d_name);
+                matches[nmatches++] = copy_string(full);    //store matched path
+            } 
+            else {
+                matches[nmatches++] = copy_string(ent->d_name); //store matched file name
             }
 
             if (nmatches >= MAX_ARGS - 1) {
@@ -146,7 +151,7 @@ static void add_expanded_arg(Command *cmd, char *token) {
     }
 }
 
-int tokenize(char *line, char *tokens[]) {
+int tokenize(char *line, char *tokens[]) { //tokenize input lines
     int ntokens = 0;
     int i = 0;
 
@@ -257,7 +262,7 @@ int parse_job(char *tokens[], int ntokens, Job *job) {
             continue;
         }
 
-        if (strcmp(tokens[i], ">") == 0) {
+        if (strcmp(tokens[i], ">") == 0) {    //handle output redirection
             if (i + 1 >= ntokens ||
                 strcmp(tokens[i + 1], "<") == 0 ||
                 strcmp(tokens[i + 1], ">") == 0 ||
@@ -265,7 +270,7 @@ int parse_job(char *tokens[], int ntokens, Job *job) {
                 fprintf(stderr, "syntax error near >\n");
                 return -1;
             }
-            if (job->cmds[cmd_index].outfile != NULL) {
+            if (job->cmds[cmd_index].outfile != NULL) {   //make sure single redircts 
                 fprintf(stderr, "syntax error: multiple output redirections\n");
                 return -1;
             }

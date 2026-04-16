@@ -25,18 +25,20 @@ static int open_output(char *file) {
     return fd;
 }
 
-Status make_status_from_wait(int wstatus) {
+Status make_status_from_wait(int status) {
     Status st;
     st.signaled = 0;
     st.signal_num = 0;
     st.exit_code = 0;
 
-    if (WIFSIGNALED(wstatus)) {
+    if (WIFSIGNALED(status)) {
         st.signaled = 1;
-        st.signal_num = WTERMSIG(wstatus);
-    } else if (WIFEXITED(wstatus)) {
-        st.exit_code = WEXITSTATUS(wstatus);
-    } else {
+        st.signal_num = WTERMSIG(status);
+    } 
+    else if (WIFEXITED(status)) {
+        st.exit_code = WEXITSTATUS(status);
+    } 
+    else {
         st.exit_code = 1;
     }
 
@@ -55,20 +57,21 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
 
     if (cmd->infile != NULL || !interactive_mode) {
         saved_stdin = dup(STDIN_FILENO);
-        if (saved_stdin < 0) {
+        if (saved_stdin < 0) {   //make sure stdin was duplicated
             perror("dup");
             st.exit_code = 1;
             return st;
         }
 
-        if (cmd->infile != NULL) {
+        if (cmd->infile != NULL) {   //open specified input file
             fd = open_input(cmd->infile);
             if (fd < 0) {
                 close(saved_stdin);
                 st.exit_code = 1;
                 return st;
             }
-        } else {
+        } 
+        else {    //no input file logic
             fd = open("/dev/null", O_RDONLY);
             if (fd < 0) {
                 perror("/dev/null");
@@ -100,13 +103,14 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
             return st;
         }
 
+        //restore original and return error
         fd = open_output(cmd->outfile);
         if (fd < 0) {
             if (saved_stdin >= 0) {
                 dup2(saved_stdin, STDIN_FILENO);
                 close(saved_stdin);
             }
-            close(saved_stdout);
+            close(saved_stdout);   //clean up saved stdout
             st.exit_code = 1;
             return st;
         }
@@ -128,7 +132,8 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
     if (strcmp(cmd->argv[0], "exit") == 0) {
         *exit_shell = 1;
         st.exit_code = 0;
-    } else {
+    } 
+    else {
         st.exit_code = run_builtin(cmd->argv);
     }
 
@@ -149,20 +154,23 @@ static void child_run_command(Command *cmd, int in_fd, int out_fd, int interacti
     char path[PATH_MAX];
     int fd;
 
-    if (in_fd != -1) {
+    if (in_fd != -1) {    //read input from previous pipe
         dup2(in_fd, STDIN_FILENO);
-    } else if (cmd->infile != NULL) {
+    } 
+    else if (cmd->infile != NULL) {      //use redirected input file
         fd = open_input(cmd->infile);
         if (fd < 0) exit(1);
         dup2(fd, STDIN_FILENO);
         close(fd);
-    } else if (!interactive_mode) {
+    } 
+    else if (!interactive_mode) {
         dup2(devnull_fd, STDIN_FILENO);
     }
 
     if (out_fd != -1) {
         dup2(out_fd, STDOUT_FILENO);
-    } else if (cmd->outfile != NULL) {
+    } 
+    else if (cmd->outfile != NULL) {
         fd = open_output(cmd->outfile);
         if (fd < 0) exit(1);
         dup2(fd, STDOUT_FILENO);
@@ -183,7 +191,7 @@ static void child_run_command(Command *cmd, int in_fd, int out_fd, int interacti
         exit(127);
     }
 
-    if (!find_program(cmd->argv[0], path)) {
+    if (!find_program(cmd->argv[0], path)) {   //return error when not found
         fprintf(stderr, "%s: command not found\n", cmd->argv[0]);
         exit(127);
     }
@@ -208,6 +216,7 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
         return execute_parent_builtin(&job->cmds[0], interactive_mode, exit_shell);
     }
 
+    //open /dev/null in batch mode so commands dont read from shell input stream
     if (!interactive_mode) {
         devnull_fd = open("/dev/null", O_RDONLY);
         if (devnull_fd < 0) {
@@ -260,10 +269,10 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
     if (devnull_fd != -1) close(devnull_fd);
 
     for (i = 0; i < job->ncmds; i++) {
-        int wstatus;
-        waitpid(pids[i], &wstatus, 0);
+        int status;
+        waitpid(pids[i], &status, 0);
         if (i == job->ncmds - 1) {
-            st = make_status_from_wait(wstatus);
+            st = make_status_from_wait(status);
         }
     }
 

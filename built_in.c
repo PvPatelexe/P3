@@ -10,7 +10,7 @@ char *search_dirs[] = {"/usr/local/bin", "/usr/bin", "/bin", NULL};
 int find_program(char *name, char *path) {
     int i;
 
-    if (has_slash(name)) {
+    if (has_slash(name)) {    //check directly if command has '/'
         if (access(name, X_OK) == 0) {
             strcpy(path, name);
             return 1;
@@ -18,7 +18,7 @@ int find_program(char *name, char *path) {
         return 0;
     }
 
-    if (is_builtin(name)) {
+    if (is_builtin(name)) {    //not external
         return 0;
     }
 
@@ -32,19 +32,33 @@ int find_program(char *name, char *path) {
     return 0;
 }
 
+int builtin_pwd(void) { 
+    char cwd[PATH_MAX];
+
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        perror("pwd");      //failure
+        return 1;
+    }
+
+    printf("%s\n", cwd); //prints current directory on success
+    return 0;
+}
+
 int builtin_cd(char *argv[]) {
     char *dir;
-
+    //handling cd arguments
     if (argv[1] == NULL) {
         dir = getenv("HOME");
         if (dir == NULL) {
             fprintf(stderr, "cd: HOME not set\n");
             return 1;
         }
-    } else if (argv[2] != NULL) {
+    } 
+    else if (argv[2] != NULL) {
         fprintf(stderr, "cd: too many arguments\n");
         return 1;
-    } else {
+    } 
+    else {
         dir = argv[1];
     }
 
@@ -56,31 +70,15 @@ int builtin_cd(char *argv[]) {
     return 0;
 }
 
-int builtin_pwd(void) {
-    char cwd[PATH_MAX];
-
-    if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        perror("pwd");
-        return 1;
-    }
-
-    printf("%s\n", cwd);
-    return 0;
-}
 
 int builtin_which(char *argv[]) {
     char path[PATH_MAX];
 
-    if (argv[1] == NULL || argv[2] != NULL) {
-        return 1;
-    }
+    if (argv[1] == NULL || argv[2] != NULL || is_builtin(argv[1])) return 1; //checking logic
 
-    if (is_builtin(argv[1])) {
-        return 1;
-    }
 
     if (find_program(argv[1], path)) {
-        printf("%s\n", path);
+        printf("%s\n", path);   //print if found
         return 0;
     }
 

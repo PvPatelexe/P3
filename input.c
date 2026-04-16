@@ -16,6 +16,14 @@ char *copy_string(const char *s) {
     return p;
 }
 
+int has_slash(char *s) {
+    return strchr(s, '/') != NULL;
+}
+
+int has_star(char *s) {
+    return strchr(s, '*') != NULL;
+}
+
 void init_job(Job *job) {
     int i, j;
     job->ncmds = 0;
@@ -57,13 +65,6 @@ int is_builtin(char *name) {
            strcmp(name, "exit") == 0;
 }
 
-int has_slash(char *s) {
-    return strchr(s, '/') != NULL;
-}
-
-int has_star(char *s) {
-    return strchr(s, '*') != NULL;
-}
 
 int read_line_fd(int fd, char *line) {
     static char buf[MAX_LINE];
