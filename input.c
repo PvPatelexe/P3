@@ -132,7 +132,7 @@ void print_prompt(void) {
         return;
     }
 
-    if (home != NULL) {
+    if (home != NULL) {   // if current directory within HOME, display it using '~'
         int len = strlen(home);
         if (strncmp(cwd, home, len) == 0 &&
             (cwd[len] == '\0' || cwd[len] == '/')) {
