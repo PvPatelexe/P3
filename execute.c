@@ -16,7 +16,6 @@ static int open_input(char *file) {
     }
     return fd;
 }
-
 static int open_output(char *file) {
     int fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP);
     if (fd < 0) {
@@ -24,7 +23,6 @@ static int open_output(char *file) {
     }
     return fd;
 }
-
 Status make_status_from_wait(int status) {
     Status st;
     st.signaled = 0;
@@ -41,7 +39,6 @@ Status make_status_from_wait(int status) {
     else {
         st.exit_code = 1;
     }
-
     return st;
 }
 
@@ -62,7 +59,6 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
             st.exit_code = 1;
             return st;
         }
-
         if (cmd->infile != NULL) {   //open specified input file
             fd = open_input(cmd->infile);
             if (fd < 0) {
@@ -80,7 +76,6 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
                 return st;
             }
         }
-
         if (dup2(fd, STDIN_FILENO) < 0) {
             perror("dup2");
             close(fd);
@@ -90,7 +85,6 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
         }
         close(fd);
     }
-
     if (cmd->outfile != NULL) {
         saved_stdout = dup(STDOUT_FILENO);
         if (saved_stdout < 0) {
@@ -102,7 +96,6 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
             st.exit_code = 1;
             return st;
         }
-
         //restore original and return error
         fd = open_output(cmd->outfile);
         if (fd < 0) {
@@ -114,7 +107,6 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
             st.exit_code = 1;
             return st;
         }
-
         if (dup2(fd, STDOUT_FILENO) < 0) {
             perror("dup2");
             close(fd);
@@ -128,7 +120,6 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
         }
         close(fd);
     }
-
     if (strcmp(cmd->argv[0], "exit") == 0) {
         *exit_shell = 1;
         st.exit_code = 0;
@@ -136,17 +127,14 @@ Status execute_parent_builtin(Command *cmd, int interactive_mode, int *exit_shel
     else {
         st.exit_code = run_builtin(cmd->argv);
     }
-
     if (saved_stdin >= 0) {
         dup2(saved_stdin, STDIN_FILENO);
         close(saved_stdin);
     }
-
     if (saved_stdout >= 0) {
         dup2(saved_stdout, STDOUT_FILENO);
         close(saved_stdout);
     }
-
     return st;
 }
 
@@ -166,7 +154,6 @@ static void child_run_command(Command *cmd, int in_fd, int out_fd, int interacti
     else if (!interactive_mode) {
         dup2(devnull_fd, STDIN_FILENO);
     }
-
     if (out_fd != -1) {
         dup2(out_fd, STDOUT_FILENO);
     } 
@@ -176,7 +163,6 @@ static void child_run_command(Command *cmd, int in_fd, int out_fd, int interacti
         dup2(fd, STDOUT_FILENO);
         close(fd);
     }
-
     if (in_fd != -1) close(in_fd);
     if (out_fd != -1) close(out_fd);
     if (devnull_fd != -1) close(devnull_fd);
@@ -184,18 +170,15 @@ static void child_run_command(Command *cmd, int in_fd, int out_fd, int interacti
     if (is_builtin(cmd->argv[0])) {
         exit(run_builtin(cmd->argv));
     }
-
     if (has_slash(cmd->argv[0])) {
         execv(cmd->argv[0], cmd->argv);
         perror(cmd->argv[0]);
         exit(127);
     }
-
     if (!find_program(cmd->argv[0], path)) {   //return error when not found
         fprintf(stderr, "%s: command not found\n", cmd->argv[0]);
         exit(127);
     }
-
     execv(path, cmd->argv);
     perror(path);
     exit(127);
@@ -215,7 +198,6 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
     if (job->ncmds == 1 && is_builtin(job->cmds[0].argv[0])) {
         return execute_parent_builtin(&job->cmds[0], interactive_mode, exit_shell);
     }
-
     //open /dev/null in batch mode so commands dont read from shell input stream
     if (!interactive_mode) {
         devnull_fd = open("/dev/null", O_RDONLY);
@@ -225,10 +207,8 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
             return st;
         }
     }
-
     for (i = 0; i < job->ncmds; i++) {
         int pipefd[2] = {-1, -1};
-
         if (i < job->ncmds - 1) {
             if (pipe(pipefd) < 0) {
                 perror("pipe");
@@ -238,7 +218,6 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
                 return st;
             }
         }
-
         pids[i] = fork();
         if (pids[i] < 0) {
             perror("fork");
@@ -249,25 +228,20 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
             st.exit_code = 1;
             return st;
         }
-
         if (pids[i] == 0) {
             if (pipefd[0] != -1) close(pipefd[0]);
-
             child_run_command(&job->cmds[i],
                               prev_read,
                               (i < job->ncmds - 1) ? pipefd[1] : -1,
                               interactive_mode,
                               devnull_fd);
         }
-
         if (prev_read != -1) close(prev_read);
         if (pipefd[1] != -1) close(pipefd[1]);
         prev_read = pipefd[0];
     }
-
     if (prev_read != -1) close(prev_read);
     if (devnull_fd != -1) close(devnull_fd);
-
     for (i = 0; i < job->ncmds; i++) {
         int status;
         waitpid(pids[i], &status, 0);
@@ -275,10 +249,8 @@ Status execute_job(Job *job, int interactive_mode, int *exit_shell) {
             st = make_status_from_wait(status);
         }
     }
-
     if (job->should_exit) {
         *exit_shell = 1;
     }
-
     return st;
 }
