@@ -4,6 +4,19 @@
 
 #include "mysh.h"
 
+static void sort_strings(char *arr[], int n) {
+    int i, j;
+    for (i = 0; i < n; i++) {
+        for (j = i + 1; j < n; j++) {
+            if (strcmp(arr[i], arr[j]) > 0) {
+                char *temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+    }
+}
+
 static int match_pattern(char *name, char *pattern) {
     char *star = strchr(pattern, '*');
 
@@ -39,18 +52,6 @@ static int match_pattern(char *name, char *pattern) {
     return 1;
 }
 
-static void sort_strings(char *arr[], int n) {
-    int i, j;
-    for (i = 0; i < n; i++) {
-        for (j = i + 1; j < n; j++) {
-            if (strcmp(arr[i], arr[j]) > 0) {
-                char *temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-            }
-        }
-    }
-}
 
 static void add_expanded_arg(Command *cmd, char *token) {
     char *star;
