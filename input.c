@@ -39,7 +39,7 @@ void init_job(Job *job) {
     }
 }
 
-void free_job(Job *job) {
+void free_job(Job *job) {  //free all dynamically allocated memory associated with a job
     int i, j;
     for (i = 0; i < job->ncmds; i++) {
         for (j = 0; j < job->cmds[i].argc; j++) {
@@ -52,6 +52,7 @@ void free_job(Job *job) {
             free(job->cmds[i].outfile);
         }
     }
+    //reset job metadata
     job->ncmds = 0;
     job->should_exit = 0;
 }
@@ -82,6 +83,7 @@ int read_line_fd(int fd, char *line) {
     while (1) {
         int i;
 
+        //scan buffer for new line to extract complete line
         for (i = start; i < end; i++) {
             if (buf[i] == '\n') {
                 int len = i - start;
