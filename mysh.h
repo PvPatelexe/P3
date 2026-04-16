@@ -20,19 +20,16 @@ typedef struct {
     char *infile;
     char *outfile;
 } Command;
-
 typedef struct {
     Command cmds[MAX_CMDS];
     int ncmds;
     int should_exit;
 } Job;
-
 typedef struct {
     int signaled;
     int signal_num;
     int exit_code;
 } Status;
-
 /* helpers */
 char *copy_string(const char *s);
 void init_job(Job *job);
